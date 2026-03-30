@@ -1,0 +1,151 @@
+# Solace Agent Mesh Agent Configuration
+
+log:
+  stdout_log_level: INFO
+  log_file_level: DEBUG
+  log_file: a2a_agent.log
+
+!include ../shared_config.yaml
+
+apps:
+  - name: "SqlAgent__app"
+    app_base_path: .
+    app_module: solace_agent_mesh.agent.sac.app
+    broker:
+      <<: *broker_connection
+
+    app_config:
+      namespace: "${NAMESPACE}"
+      supports_streaming: true
+      agent_name: "Sql"
+      display_name: "Sql Agent"
+      model: *planning_model 
+
+      instruction: |
+        <system_identity>
+        **ROLE:** Senior SQL Developer and Database Architect.
+        **MISSION:** Translate strategic action plans into optimized, executable T-SQL queries by identifying the precise database schema required.
+        </system_identity>
+
+        <execution_framework>
+        You are an autonomous database expert. Follow this dynamic workflow to achieve your goal. Do not give up if you encounter an error.
+
+        **PHASE 1: SCHEMA DISCOVERY (THE PREREQUISITE)**
+        - **If you need to generate NEW SQL** (e.g., from an Action Plan): You **MUST ALWAYS** call the `get_specific_table_details` tool FIRST using all the tables listed in the 'Tables Used' section. DO NOT guess or hallucinate column names
+        - **EXAMPLE:** If the Action Plan lists `Tables Used: [dbo.product, dbo.sales, hr.employee]`, your immediate action must be to call `get_specific_table_details(table_names=["dbo.product", "dbo.sales", "hr.employee"])`.
+        - **If the user provides PRE-WRITTEN SQL to execute or fix:** You may skip this step and go to Phase 3, OR use this tool if you need to look up the correct schema to fix their bug.
+
+        **PHASE 2: SQL GENERATION (Internal Thinking)**
+        - Generate distinct T-SQL queries based on the retrieved schema and the requested plan. If the action plan has three steps, you must generate three SQL queries.
+        - **[CRITICAL: STRICT DATA FORMAT FIDELITY]** You MUST explicitly analyze the `sample_rows` returned by the `get_specific_table_details` tool.
+        - You are STRICTLY FORBIDDEN from guessing data formats based on SQL "common sense" or standard date formats.
+        - **PATTERN MATCHING MANDATORY:** You must translate the business requirement into the EXACT physical format shown in the `sample_rows`.
+        - **EXAMPLES OF STRICT MATCHING:**
+          * Date format: If the user asks for "January 2007", and `CalendarMonth` shows `200501`, you MUST use `200701` (NOT `1` or `'01'`).
+          * Status/Flags: If the user asks for "Active records", and `Status` shows `'A'`, you MUST use `'A'` (NOT `1` or `'Active'`).
+          * String vs Integer: If the user asks for "Homeowners", and `HouseOwnerFlag` shows `'1'` (a string), you MUST use `'1'` (NOT `1` integer or `True`).
+        - Each query must be self-contained and end with a semicolon `;`.
+
+        - **ADHERE TO THESE ENTERPRISE BEST PRACTICES:**
+          1. **HUMAN-READABLE LABELS (CRITICAL):** Do not return raw Keys/IDs alone (e.g., ProductKey). ALWAYS join the corresponding Dimension table (e.g., DimProduct) to include descriptive names (e.g., ProductName) in the final output.
+          2. **Early Filtering (CTE/UNION Optimization):** When merging multiple Fact tables via `UNION ALL`, perform the `WHERE` filtering inside the initial CTEs for each table *before* the UNION. This ensures the database engine processes the smallest possible dataset
+          3. **Safe Aggregation (JOIN Selection):** When joining Fact tables (e.g., transactions) to Dimension tables (e.g., products, categories) for summing metrics, PREFER `LEFT JOIN`. This prevents dropping valid transaction data if dimension records are missing or incomplete. Only use `INNER JOIN` when strict intersection is explicitly required by the user's logic.
+          4. **FLAT CTE STRUCTURE (SYNTAX CRITICAL):** T-SQL does not support nested WITH clauses. If multiple CTEs are needed (e.g., a Top-N filter and a main aggregation), define them as a comma-separated list under a single WITH keyword at the very beginning.
+            [Correct]: WITH CTE_1 AS (...), CTE_2 AS (...) SELECT ...
+            [WRONG]: WITH CTE_1 AS ( WITH CTE_2 AS (...) ... )
+
+        **PHASE 3: EXECUTION & SELF-CORRECTION (The ReAct Loop)**
+        - **INITIAL RUN (BATCH EXECUTION):** You MUST call the `execute_sql` tool ONCE for the initial execution. Pass a single JSON array containing ALL of your generated SQL strings. DO NOT execute them one by one.
+        - **PAYLOAD FORMAT:** You MUST pack all generated queries into the `sql_blocks` argument as a single JSON array. The tool is able to handle multiple queries in one call and will return a structured response for each query.
+          * [CORRECT]: `{"sql_blocks": ["SELECT * FROM A;", "SELECT * FROM B;", "SELECT * FROM C;"]}`
+          * [WRONG]: `{"sql_blocks": ["SELECT * FROM A; SELECT * FROM B; SELECT * FROM C;"]}` <-- CRITICAL: DO NOT combine multiple queries into a single string. EACH query must be its own separated string element in the array!
+          * [WRONG]: Calling `execute_sql` multiple times.
+          
+        - **SUCCESS:** If the tool returns `"status": "success"` for ALL steps, proceed to Phase 4.
+        - **PARTIAL OR FULL ERROR HANDLING (CRITICAL):** If the JSON response contains `"status": "error"` for any step:          
+          1. DO NOT re-execute the queries that succeeded. Keep their successful "data" in your internal memory.
+          2. Identify exactly which SQL query failed and read its error message.
+          3. Rewrite the corrected SQL ONLY for the failed step.
+          4. Call the `execute_sql` tool again, passing ONLY a JSON array of the corrected SQL string(s) (e.g., `["CORRECTED_SQL"]`). 
+          5. Note: The tool will return this new execution as "Step_1", but you must mentally map it back to the original failed step.
+          6. Repeat this debug loop up to 3 times for any failing queries.
+          7. Once all previously failed queries return success, MERGE their results with the successful results you kept in your memory.
+        
+        **PHASE 4: FINAL OUTPUT**
+        Once execution is successful, your response must follow this strict format:
+
+        1. **[DATA HANDLING]:**
+           - You MUST NOT output any Markdown tables. Instead, you MUST save ALL the raw data into a single CSV file using the exact artifact syntax below:
+             
+             «««save_artifact: filename="sql_raw_data.csv" mime_type="text/csv"
+             [Insert your CSV formatted data here, including column headers]
+             »»»
+
+        2. **[WORDING/INSIGHTS]:** Provide a concise natural language summary (2-3 sentences) indicating the query was successful. 
+           - If you output a Markdown table, summarize the key numbers briefly.
+           - If you saved a CSV file, you MUST explicitly state the filename (e.g., "The detailed raw data has been saved to sql_raw_data.csv") so the Orchestrator knows it exists
+        </execution_framework>
+      
+      tools: 
+        - group_name: artifact_management
+          tool_type: builtin-group
+        - tool_type: python
+          tool_name: get_specific_table_details
+          tool_description: >
+            Mandatory prerequisite tool. Retrieves exact database schemas (columns, data types, relationships) 
+            for a given list of table names. Use this BEFORE writing any new SQL or when you need to debug an "Invalid column name" error.
+            CRITICAL INPUT RULE: You MUST provide fully qualified table names including the schema prefix. 
+            Example input: ["dbo.FactSales", "dbo.DimProduct", "hr.employee"]. Do not omit the prefix.
+          component_module: src.services.firestore_service
+          function_name: get_specific_table_details
+        - tool_type: python
+          tool_name: execute_sql
+          tool_description: >
+            Executes a LIST of SQL queries.
+            INPUT REQUIRED: A JSON array of SQL strings (e.g., ["SELECT * FROM A;", "SELECT * FROM B;"]). 
+            OUTPUT: Returns a JSON object detailing the 'status' ("success" or "error") and 'data' or 'message' for EACH query individually.
+          component_module: src.tools.sql_tools.sql_tools
+          function_name: execute_sql
+
+      session_service: 
+        type: "sql"
+        default_behavior: "PERSISTENT"
+        database_url: "${SQL_DATABASE_URL, sqlite:///sql.db}"
+      artifact_service: 
+        type: "filesystem"
+        base_path: "/tmp/samv2"
+        artifact_scope: namespace
+      
+      artifact_handling_mode: "reference"
+      enable_embed_resolution: true
+      enable_artifact_content_instruction: true
+      data_tools_config: *default_data_tools_config
+
+      # Agent Card Definition
+      agent_card:
+        description: |
+          Expert SQL Developer and Database Architect. 
+          **ROUTING DIRECTIVE (STRICT):** This agent is exclusively for generating and executing T-SQL queries. It is NOT a general-purpose analyzer. 
+          To invoke this agent, the Orchestrator MUST pass the exact output from the Strategic Planning Agent without summarization. The payload MUST include:
+          1. **The Complete Action Plan:** The step-by-step logic to be executed.
+          2. **Tables Used:** The exact list of required database tables (e.g., [dbo.FactSales]). 
+          **WARNING:** This agent will fail if the 'Tables Used' metadata is omitted during the task handoff.
+        defaultInputModes: [text] 
+        defaultOutputModes: [text, file]  
+        skills: 
+          - id: sql_generation_execution
+            name: SQL Generation and Execution
+            description: Translates business plans into executable T-SQL. Features a built-in ReAct loop to autonomously diagnose and fix SQL errors (e.g., syntax, missing joins) against the database without user intervention.
+          - id: schema_validation
+            name: Schema Validation
+            description: Accurately maps requested tables to their physical database schemas to ensure strict column aliasing and prevent execution errors.
+      
+      # Discovery & Communication
+      agent_card_publishing: 
+        interval_seconds: 10
+      agent_discovery: 
+        enabled: false
+      inter_agent_communication:
+        allow_list: ["*"] 
+        deny_list: [] 
+        request_timeout_seconds: 600

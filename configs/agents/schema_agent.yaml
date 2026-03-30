@@ -1,0 +1,81 @@
+# # Solace Agent Mesh Agent Configuration
+
+# log:
+#   stdout_log_level: INFO
+#   log_file_level: DEBUG
+#   log_file: a2a_agent.log
+
+# !include ../shared_config.yaml
+
+# apps:
+#   - name: "SchemaAgent__app"
+#     app_base_path: .
+#     app_module: solace_agent_mesh.agent.sac.app
+#     broker:
+#       <<: *broker_connection
+
+#     app_config:
+#       namespace: "${NAMESPACE}"
+#       supports_streaming: true
+#       agent_name: "SchemaAgent"
+#       display_name: "Schema Agent"
+#       model: *general_model 
+
+#       instruction: |
+#         <system_identity>
+#         **ROLE:** Database Schema Provider and Cache Manager (DBA).
+#         **MISSION:** Fetch database schemas using your tools and provide the resulting Cache ID to the Orchestrator.
+#         </system_identity>
+
+#         <execution_framework>
+#         1. When requested to provide schemas for specific tables, you MUST call the `get_specific_table_details` tool.
+#         2. The tool will automatically store the giant schema in the cloud cache and return a `cache_name` (e.g., "cachedContents/xyz123").
+#         3. **[CRITICAL: ZERO CONTEXT POLLUTION]** You are STRICTLY FORBIDDEN from printing, summarising, or outputting the actual schema columns/tables in your text response.
+#         4. Your final response MUST be extremely brief. You must ONLY output the `cache_name` and a short success message.
+#         Example valid output: "Schema caching complete. The cache ID is: cachedContents/abc-12345"
+#         </execution_framework>
+      
+#       tools: 
+#         - tool_type: python
+#           tool_name: get_specific_table_details
+#           tool_description: >
+#             Mandatory prerequisite tool. Retrieves exact database schemas (columns, data types, relationships) 
+#             for a given list of table names.
+#             CRITICAL INPUT RULE: You MUST provide fully qualified table names including the schema prefix. 
+#             Example input: ["dbo.FactSales", "dbo.DimProduct", "hr.employee"]. Do not omit the prefix.
+#           component_module: src.tools.schema_tools.schema_tools
+#           function_name: get_specific_table_details
+
+#       session_service: 
+#         type: "sql"
+#         default_behavior: "PERSISTENT"
+#         database_url: "${SCHEMA_AGENT_DATABASE_URL, sqlite:///schema_agent.db}"
+#       artifact_service: *default_artifact_service
+      
+#       artifact_handling_mode: "reference"
+#       enable_embed_resolution: true
+#       enable_artifact_content_instruction: true
+#       data_tools_config: *default_data_tools_config
+
+#       # Agent Card Definition
+#       agent_card:
+#         description: >
+#           The Database Administrator (DBA) and Schema Caching Agent. 
+#           CRITICAL ROUTING RULE: The Orchestrator MUST invoke this agent immediately after the Planner Agent responce
+#           It fetches raw database schemas and securely stores them in the LLM Context Cache, returning only a lightweight 'Cache ID' string to ensure zero context pollution.
+#         defaultInputModes: [text] 
+#         defaultOutputModes: [text, file] 
+#         skills: 
+#           - id: schema_caching
+#             name: Schema Retrieval and Caching
+#             description: Retrieves structural database blueprints and stores them in LLM cache for token-efficient SQL Agent usage.
+      
+#       # Discovery & Communication
+#       agent_card_publishing: 
+#         interval_seconds: 10
+#       agent_discovery: 
+#         enabled: false
+#       inter_agent_communication:
+#         allow_list: ["*"] 
+#         deny_list: [] 
+#         request_timeout_seconds: 600

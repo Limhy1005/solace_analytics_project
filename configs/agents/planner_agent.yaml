@@ -1,0 +1,106 @@
+# Solace Agent Mesh Agent Configuration
+
+log:
+  stdout_log_level: INFO
+  log_file_level: DEBUG
+  log_file: a2a_agent.log
+
+!include ../shared_config.yaml
+
+apps:
+  - name: "PlannerAgent__app"
+    app_base_path: .
+    app_module: solace_agent_mesh.agent.sac.app
+    broker:
+      <<: *broker_connection
+
+    app_config:
+      namespace: "contoso_analytics"
+      supports_streaming: true
+      agent_name: "PlannerAgent"
+      display_name: "Planner Agent "
+      model: *planning_model 
+
+      instruction: |
+        <system_identity>
+        **ROLE:** Strategic Planning Expert for the Analytics AI platform.
+        **MISSION:** Transform all business inquiries into deep-dive execution strategies.
+        </system_identity>
+
+        <prime_directives>
+        1. **TOOL RELIANCE:** You MUST use the provided tools to generate the plan. Never use your internal knowledge to guess or invent a strategy.
+        2. **NO CONVERSATIONAL FILLER:** Do not add pleasantries (e.g., "Here is the plan"). Output ONLY the final strategic plan.
+        3. **FALLBACK:** If the tool fails or returns empty, output exactly: "ERROR: Planner tool failed to generate a strategy."
+        </prime_directives>
+
+        <output_structure>
+        CRITICAL: Your final output MUST be derived SOLELY from the tool's return payload. 
+        1. **Executive Summary**
+        2. **Action Plan**
+        3. **Tables Used**
+        4. **Key Metrics**
+        </output_structure>
+      
+      # ---------------Delete if changed to enable ----------------
+      inject_system_purpose: false # change back to true
+      inject_response_format: false # change back to true
+      inject_user_profile: false # change back to true 
+      # ---------------Delete if changed to enable ----------------
+      
+      tools: 
+        - tool_type: python 
+          tool_name: generate_complex_business_plan
+          tool_description: >
+            Strategic analyzer for complex, multi-dimensional business inquiries. 
+            Use this tool when the query requires deep analysis, such as "Why", "Trends", 
+            "Analyze", or "Compare". 
+            IT GENERATES A MULTI-STEP PLAN involving MULTIPLE SQL queries (e.g., Total -> Driver -> Trend) 
+            to provide a comprehensive breakdown of the data.
+          component_module: src.tools.planner_tools.planner_tools
+          function_name: generate_complex_business_plan
+
+        - tool_type: python 
+          tool_name: generate_direct_action_plan
+          tool_description: >
+            Direct action translator for simple, factual, or retrieval-based questions. 
+            Use this for "List", "Show me", "Count", or "What is" queries. 
+            IT GENERATES A SINGLE-STEP PLAN that can be resolved with a SINGLE SQL query 
+            to provide immediate data points without additional analytical layers.
+          component_module: src.tools.planner_tools.planner_tools
+          function_name: generate_direct_action_plan
+
+      session_service: 
+        type: "sql"
+        default_behavior: "PERSISTENT"
+        database_url: "${PLANNER_AGENT_DATABASE_URL, sqlite:///planner_agent.db}"
+      artifact_service: *default_artifact_service
+      artifact_handling_mode: "reference"
+      enable_embed_resolution: true # change back to true
+      enable_artifact_content_instruction: true # change back to true 
+      data_tools_config: *default_data_tools_config
+
+      # Agent Card Definition
+      agent_card:
+        description: >
+          The Planning Engine of the system. Specializes in analyzing user queries and 
+          generating executable technical roadmaps based on query complexity.
+        defaultInputModes: [text] 
+        defaultOutputModes: [text, file] 
+        skills: 
+          - id: strategic_analytical_planning
+            name: "Strategic Analytical Planning"
+            description: "Generates multi-step execution plans for complex business inquiries. Uses real-time database schema discovery and a 'Total -> Driver -> Trend' framework to map out deep-dive analytics."
+          
+          - id: direct_action_planning
+            name: "Direct Action Planning"
+            description: "Generates single-step execution plans for simple data inquiries. Uses real-time database schema discovery to translate straightforward user requests into immediate data retrieval tasks."
+
+      # Discovery & Communication
+      agent_card_publishing: 
+        interval_seconds: 10
+      agent_discovery: 
+        enabled: false
+      inter_agent_communication:
+        allow_list: ["*"] 
+        deny_list: [] 
+        request_timeout_seconds: 600

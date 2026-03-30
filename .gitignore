@@ -1,0 +1,33 @@
+# Environments
+.venv/
+python3/
+env/
+
+# Cache & Compiled files
+__pycache__/
+*.pyc
+.sam/
+
+# Logs
+*.log
+sam.log*
+firebase-debug.log
+manifest_debug.log
+
+# Databases
+*.db
+orchestrator.db
+planner_agent.db
+report.db
+sql.db
+webui_gateway.db
+
+# Secrets & Configs
+.env
+service-account-key.json
+crdw_schema_metadata.json
+verify_cache.py
+
+# Other local/generated files
+repomix-output.md
+npx/

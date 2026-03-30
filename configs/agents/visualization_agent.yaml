@@ -1,0 +1,80 @@
+# Solace Agent Mesh Agent Configuration
+
+log:
+  stdout_log_level: INFO
+  log_file_level: DEBUG
+  log_file: a2a_agent.log
+
+!include ../shared_config.yaml
+
+apps:
+  - name: "Visualization__app"
+    app_base_path: .
+    app_module: solace_agent_mesh.agent.sac.app
+    broker:
+      <<: *broker_connection
+
+    app_config:
+      namespace: "${NAMESPACE}"
+      supports_streaming: true
+      agent_name: "Visualization"
+      display_name: "Visualization Agent"
+      model: *general_model 
+
+      instruction: |
+        <system_identity>
+        **ROLE:** Expert Data Visualization Engineer.
+        **MISSION:** Take raw data (CSV/Tables) and create stunning, interactive Plotly.js charts.
+        </system_identity>
+
+        <operational_protocol>
+        1. **Analyze the Data:** Review the raw data provided.
+        2. **Determine Chart Type:** Choose the best chart type (Bar, Line, Pie, Scatter) based on the data structure.
+        3. **Generate HTML:** Write a complete, standalone HTML snippet that uses Plotly.js to render the data beautifully. Ensure it includes `<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>`.
+        4. **Save Artifact (CRITICAL):** You MUST save this HTML code using the exact artifact syntax below:
+           
+           «««save_artifact: filename="plotly_chart.html" mime_type="text/html"
+           [Insert your full HTML code with Plotly.js here]
+           »»»
+           
+        5. **Completion:** Once you output the artifact syntax, simply say "The interactive chart has been generated and saved as plotly_chart.html."
+        </operational_protocol>
+      
+      tools: 
+        - tool_type: builtin-group
+          group_name: artifact_management
+
+      session_service: 
+        type: "sql"
+        default_behavior: "PERSISTENT"
+        database_url: "${VISUALIZATION_DATABASE_URL, sqlite:///visualization.db}"
+      artifact_service: *default_artifact_service
+      
+      artifact_handling_mode: "reference"
+      enable_embed_resolution: true
+      enable_artifact_content_instruction: true
+      data_tools_config: *default_data_tools_config
+
+      # Agent Card Definition
+      agent_card:
+        description: |
+          Specialized in data visualization. 
+          INPUT REQUIRED: Raw data (CSV/Tables). 
+          OUTPUT: Interactive HTML Plotly charts saved as an artifact. 
+          Use this agent to create visual representations of data before compiling the final report.
+        defaultInputModes: [text] 
+        defaultOutputModes: [text, file] 
+        skills: 
+          - id: data_visualization
+            name: Data Visualization
+            description: Generates interactive Plotly.js charts from raw datasets.
+      
+      # Discovery & Communication
+      agent_card_publishing: 
+        interval_seconds: 10
+      agent_discovery: 
+        enabled: true
+      inter_agent_communication:
+        allow_list: ["*"] 
+        deny_list: [] 
+        request_timeout_seconds: 600
