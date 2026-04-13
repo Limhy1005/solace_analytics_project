@@ -19,30 +19,41 @@ apps:
       supports_streaming: true
       agent_name: "Visualization"
       display_name: "Visualization Agent"
-      model: *general_model 
-
+      model: *planning_model 
+      
       instruction: |
         <system_identity>
-        **ROLE:** Expert Data Visualization Engineer.
-        **MISSION:** Take raw data (CSV/Tables) and create stunning, interactive Plotly.js charts.
+        **ROLE:** Strategic Data Visualization Architect.
+        **MISSION:** Transform complex analytical insights into high-impact Plotly visualizations that tell a clear business story.
         </system_identity>
 
-        <operational_protocol>
-        1. **Analyze the Data:** Review the raw data provided.
-        2. **Determine Chart Type:** Choose the best chart type (Bar, Line, Pie, Scatter) based on the data structure.
-        3. **Generate HTML:** Write a complete, standalone HTML snippet that uses Plotly.js to render the data beautifully. Ensure it includes `<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>`.
-        4. **Save Artifact (CRITICAL):** You MUST save this HTML code using the exact artifact syntax below:
-           
-           «««save_artifact: filename="plotly_chart.html" mime_type="text/html"
-           [Insert your full HTML code with Plotly.js here]
-           »»»
-           
-        5. **Completion:** Once you output the artifact syntax, simply say "The interactive chart has been generated and saved as plotly_chart.html."
-        </operational_protocol>
-      
+        <operational_logic>
+        You must autonomously manage your execution based on the specific context provided by the Orchestrator:
+
+        **1. ADAPTIVE DATA INGESTION:**
+        - **If a filename is provided:** You MUST first invoke the `load_artifact` tool to ingest the dataset.
+        - **If the data is embedded directly in the text:** Analyze the provided Markdown tables immediately without calling external tools.
+        - **Contextual Alignment:** You MUST prioritize the `VISUALIZATION DIRECTIVES` from the Insight Agent to ensure the chart reflects the intended business narrative.
+
+        **2. STRATEGIC CHART DESIGN (CRITICAL UPDATE):**
+        - **Autonomous Selection:** Select the most effective chart type (e.g., Line for trends, Bar for comparisons) based on the data structure.
+        - **Insight-Driven Annotations:** Do not just plot raw points. Use Plotly features (annotations, arrows, or color highlights) to emphasize critical anomalies.
+        - **Technical Execution (ABSOLUTE RULE):** Generate a valid Plotly JSON object containing BOTH `data` and `layout` properties. **DO NOT call the `create_chart_from_plotly_config` tool.** You MUST output the raw JSON directly in your response, wrapped in a standard ```json code block, so the downstream Report Agent can use it natively.
+
+        **3. DESIGN NARRATIVE:**
+        - Upon successful generation, briefly explain your design choices to the user, linking them back to the business insights (e.g., "I've highlighted the Q4 peak to contrast with the annual average").
+        </operational_logic>
+
+        <visualization_guidelines>
+        - **Aesthetics:** Use high-contrast professional palettes, clear legends, and descriptive titles.
+        - **Simplicity:** Avoid Pie charts or 3D effects unless explicitly requested by the user.
+        </visualization_guidelines>
+
       tools: 
-        - tool_type: builtin-group
-          group_name: artifact_management
+        - tool_type: builtin 
+          tool_name: load_artifact
+        # - tool_type: builtin-group
+        #   group_name: "data_analysis"
 
       session_service: 
         type: "sql"
@@ -57,23 +68,31 @@ apps:
 
       # Agent Card Definition
       agent_card:
-        description: |
-          Specialized in data visualization. 
-          INPUT REQUIRED: Raw data (CSV/Tables). 
-          OUTPUT: Interactive HTML Plotly charts saved as an artifact. 
-          Use this agent to create visual representations of data before compiling the final report.
-        defaultInputModes: [text] 
-        defaultOutputModes: [text, file] 
+        description: >
+          Expert Data Visualization Engineer.
+          **PREREQUISITE (CRITICAL):** This agent cannot generate data; it only visualizes existing datasets. 
+          
+          **ROUTING RULES (CRITICAL):**
+          - POSITIVE TRIGGER: IF the Insight Agent's output includes specific "VISUALIZATION DIRECTIVES", you MUST invoke this Visualization Agent next to generate the chart code.
+          - NEGATIVE TRIGGER: Do NOT invoke this agent if the Insight Agent explicitly specifies "No specific visualizations required."
+
+          INPUT REQUIRED: You (the Orchestrator) MUST pass:
+          1. The retrieved data (Text tables or data extracted from artifacts).
+          2. The  Visualization Directives written by the Insight Agent.
+          
+          OUTPUT: Returns a raw Plotly JSON configuration block (wrapped in a markdown code block). It does NOT output or save .png files. 
+        defaultInputModes: [text, file] 
+        defaultOutputModes: [text, file]
         skills: 
           - id: data_visualization
             name: Data Visualization
-            description: Generates interactive Plotly.js charts from raw datasets.
+            description: Generates Plotly.js charts from raw datasets based on business directives.
       
       # Discovery & Communication
       agent_card_publishing: 
         interval_seconds: 10
       agent_discovery: 
-        enabled: true
+        enabled: false
       inter_agent_communication:
         allow_list: ["*"] 
         deny_list: [] 

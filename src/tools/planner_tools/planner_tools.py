@@ -40,7 +40,7 @@ def generate_complex_business_plan(user_query: str):
 4. **% INDEPECRITICAL RULE FOR ACTION PLAN - EACH STEP MUST BE 100% INDEPENDENT:**
 
     Based on the user's query and the provided database context, generate a comprehensive, step-by-step analytical plan. Each step must be a standalone SQL query that can execute independently without relying on the results of other steps. This means you should use subqueries or JOINs within each step to ensure it can run in isolation. Do NOT use placeholders like "for the IDs found in Step 1". Instead, incorporate all necessary logic within each individual step to maintain independence and prevent execution errors.
-    To provide a high-impact plan, each response must (where applicable) follow this logical hierarchy to ensure no insights are missed:
+    To provide a high-impact plan, each response must follow this logical hierarchy to ensure no insights are missed:
 
     - **INDEPENDENCE (Technical Requirement):** Each step must be a standalone SQL query. Do NOT use placeholders like "for the IDs found in Step 1". Instead, use Subqueries or JOINs within a single step to ensure it can execute in isolation.
     - **ANALYTICAL DEPTH (Business Requirement):** A complete plan must uncover the "Why" behind the data. For comprehensive analysis queries, you MUST ALWAYS begin with a Level 1 baseline step before diving into dimensions or trends. Follow the "Total -> Driver -> Trend" framework:
@@ -54,7 +54,7 @@ def generate_complex_business_plan(user_query: str):
 
 **OUTPUT STRUCTURE:**
 The final plan MUST ONLY have FOUR main sections in the exact order below. Do NOT add any conversational filler before or after the plan.
-1. **Executive Summary**
+1. **Analysis Objective**
    - Summarize the potential business value and insights from the business problem in exactly 2-3 sentences.
 2. **Action Plan**
    - Provide a numbered list of clear, strategic data analysis tasks (one task per line).
@@ -63,7 +63,7 @@ The final plan MUST ONLY have FOUR main sections in the exact order below. Do NO
    - **CUSTOM BUSINESS LOGIC (Exception):** If a metric has a non-standard or specific business definition (e.g., Churn Rate, Retention), you MUST include the definition in parentheses after the task.
    - **NO SQL TERMS:** Strictly PROHIBITED from mentioning "JOIN", "CTE", "WHERE clause", etc.
 3. **Tables Used**
-   - Provide a simple comma-separated list of the database tables utilized to formulate this plan. 
+   - Provide a bulleted list of the database tables utilized to formulate this plan.
    - **CRITICAL:** You must include the schema prefix for every table (e.g., `dbo.TableName`, `sales.TableName`).
 4. **Key Metrics**
    - Provide a bulleted list of key metrics to track and monitor during the implementation phase.
@@ -88,7 +88,7 @@ def generate_direct_action_plan(user_question: str):
     without overcomplicating the steps.
     """
     manifest_data, targeted_schema = _get_table_context(user_question)
-    
+        
     if not manifest_data:
         return {"result": "Error: Could not retrieve data manifest."}
 
@@ -106,18 +106,18 @@ Your job is to format this simple request into a clean, professional execution p
 **OUTPUT STRUCTURE:**
 The final plan MUST ONLY have FOUR main sections in the exact order below. Do not add any conversational filler.
 
-1. **Executive Summary**
+1. **Analysis Objective**
    - Provide a brief, one-sentence summary stating that this direct data retrieval is being executed immediately.
 
 2. **Action Plan**
-   - Provide a numbered list of clear, strategic data analysis tasks (usually just 1 step for direct queries).
-   - **CRITICAL:** The step MUST begin with a strong, specific analytical verb. E.g., "Retrieve the list of...", "Count the total number of...", "Identify...".
-   - **STRATEGIC FOCUS:** Each step must be a single, clear sentence. Do NOT describe standard data operations (e.g., "by aggregating..."). 
-   - **CUSTOM BUSINESS LOGIC:** If a metric has a non-standard definition, include it in parentheses.
-   - **NO SQL TERMS:** Strictly PROHIBITED from mentioning "JOIN", "CTE", "WHERE clause", etc. Focus purely on what data needs to be pulled.
+   - **ABSOLUTE RULE:** You MUST provide EXACTLY ONE (1) single bullet point or numbered step. You are STRICTLY FORBIDDEN from generating multiple steps.
+   - **CRITICAL:** The step MUST begin with a strong, specific analytical verb (e.g., "Retrieve", "Count", "Identify").
+   - Do NOT break down the internal mechanics of how a database executes the query (e.g., do NOT separate "aggregating", "sorting", and "fetching names" into different steps). 
+   - The single step must encapsulate the entire data retrieval goal in one sentence. (e.g., "Retrieve the top 5 products based on total sales amount for January 2007.").
+   - **NO SQL TERMS:** Strictly PROHIBITED from mentioning "JOIN", "CTE", "WHERE clause", "ORDER BY", etc. Focus purely on what data needs to be pulled.
 
 3. **Tables Used**
-   - Provide a comma-separated list of the database tables utilized, including schema prefixes (e.g., `dbo.TableName`).
+   - Provide a bulleted list of the database tables utilized, including schema prefixes (e.g., `dbo.TableName`, `sales.TableName`).
 
 4. **Key Metrics**
    - Briefly list the exact attributes or core metrics being retrieved (e.g., Product Key, Product Name).

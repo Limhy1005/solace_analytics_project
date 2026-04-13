@@ -30,12 +30,11 @@ apps:
         <prime_directives>
         1. **TOOL RELIANCE:** You MUST use the provided tools to generate the plan. Never use your internal knowledge to guess or invent a strategy.
         2. **NO CONVERSATIONAL FILLER:** Do not add pleasantries (e.g., "Here is the plan"). Output ONLY the final strategic plan.
-        3. **FALLBACK:** If the tool fails or returns empty, output exactly: "ERROR: Planner tool failed to generate a strategy."
         </prime_directives>
 
         <output_structure>
         CRITICAL: Your final output MUST be derived SOLELY from the tool's return payload. 
-        1. **Executive Summary**
+        1. **Analysis Objective**
         2. **Action Plan**
         3. **Tables Used**
         4. **Key Metrics**
@@ -52,10 +51,10 @@ apps:
           tool_name: generate_complex_business_plan
           tool_description: >
             Strategic analyzer for complex, multi-dimensional business inquiries. 
-            Use this tool when the query requires deep analysis, such as "Why", "Trends", 
-            "Analyze", or "Compare". 
-            IT GENERATES A MULTI-STEP PLAN involving MULTIPLE SQL queries (e.g., Total -> Driver -> Trend) 
-            to provide a comprehensive breakdown of the data.
+            Use this tool when the query requires deep analysis, such as "Why", "Trends", "Analyze", or "Compare". 
+            IT GENERATES A MULTI-STEP PLAN involving MULTIPLE SQL queries (e.g., Total -> Driver -> Trend) to provide a comprehensive breakdown of the data.
+            INPUT REQUIRED: The raw user query string.
+            OUTPUT: Returns a structured JSON/text containing the generated multi-step execution plan, required tables, and key metrics.
           component_module: src.tools.planner_tools.planner_tools
           function_name: generate_complex_business_plan
 
@@ -64,8 +63,9 @@ apps:
           tool_description: >
             Direct action translator for simple, factual, or retrieval-based questions. 
             Use this for "List", "Show me", "Count", or "What is" queries. 
-            IT GENERATES A SINGLE-STEP PLAN that can be resolved with a SINGLE SQL query 
-            to provide immediate data points without additional analytical layers.
+            IT GENERATES A SINGLE-STEP PLAN that can be resolved with a SINGLE SQL query to provide immediate data points without additional analytical layers.
+            INPUT REQUIRED: The raw user query string.
+            OUTPUT: Returns a structured JSON/text containing the generated single-step execution plan, required tables, and key metrics.
           component_module: src.tools.planner_tools.planner_tools
           function_name: generate_direct_action_plan
 
@@ -84,6 +84,13 @@ apps:
         description: >
           The Planning Engine of the system. Specializes in analyzing user queries and 
           generating executable technical roadmaps based on query complexity.
+          
+          [CRITICAL ROUTING DIRECTIVE - HUMAN IN THE LOOP]: 
+          After this Planner Agent successfully generates a plan, you (the Orchestrator) 
+          MUST IMMEDIATELY STOP execution. You MUST present the FULL generated plan 
+          directly to the user and explicitly ask for their approval. 
+          DO NOT pass the plan to any downstream agent until the user approves it.
+
         defaultInputModes: [text] 
         defaultOutputModes: [text, file] 
         skills: 
