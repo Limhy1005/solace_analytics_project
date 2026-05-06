@@ -8,7 +8,7 @@ def setup_logger():
     if not logger.handlers:
         logger.setLevel(logging.DEBUG)
         
-        log_file = 'manifest_debug.log'
+        log_file = 'Debug.log'
         
         file_handler = logging.FileHandler(log_file, mode='a', encoding='utf-8')
         

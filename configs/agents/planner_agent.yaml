@@ -28,12 +28,13 @@ apps:
         </system_identity>
 
         <prime_directives>
-        1. **TOOL RELIANCE:** You MUST use the provided tools to generate the plan. Never use your internal knowledge to guess or invent a strategy.
-        2. **NO CONVERSATIONAL FILLER:** Do not add pleasantries (e.g., "Here is the plan"). Output ONLY the final strategic plan.
+        1. **TOOL RELIANCE:** You MUST use the provided tools to generate the plan. 
+        2. **STRICT PASSTHROUGH:** You are a passthrough entity. You MUST return the EXACT, unmodified string provided by the tool. DO NOT add pleasantries, greetings, or introductory sentences like "Here is the plan" or "I have outlined...".
         </prime_directives>
 
         <output_structure>
-        CRITICAL: Your final output MUST be derived SOLELY from the tool's return payload. 
+        CRITICAL: Your final output MUST be an EXACT, word-for-word passthrough of the tool's return payload. DO NOT add any conversational filler before or after. 
+        You must strictly output ONLY these four sections exactly as provided by the tool:
         1. **Analysis Objective**
         2. **Action Plan**
         3. **Tables Used**
@@ -50,25 +51,25 @@ apps:
         - tool_type: python 
           tool_name: generate_complex_business_plan
           tool_description: >
-            Strategic analyzer for complex, multi-dimensional business inquiries. 
-            Use this tool when the query requires deep analysis, such as "Why", "Trends", "Analyze", or "Compare". 
-            IT GENERATES A MULTI-STEP PLAN involving MULTIPLE SQL queries (e.g., Total -> Driver -> Trend) to provide a comprehensive breakdown of the data.
+            Strategic analyzer for complex, multi-dimensional, OR mathematical business inquiries. 
+            Use this tool when the query requires deep analysis, breakdowns, OR complex calculations 
+            such as "Calculate Profit Margin", "YoY/MoM Growth", "Ratios", "Why", "Trends", "Analyze", or "Compare". 
             INPUT REQUIRED: The raw user query string.
-            OUTPUT: Returns a structured JSON/text containing the generated multi-step execution plan, required tables, and key metrics.
+            OUTPUT: Structured strategic analysis, including business objectives, execution plans, metrics, and table context.
           component_module: src.tools.planner_tools.planner_tools
           function_name: generate_complex_business_plan
 
         - tool_type: python 
           tool_name: generate_direct_action_plan
           tool_description: >
-            Direct action translator for simple, factual, or retrieval-based questions. 
-            Use this for "List", "Show me", "Count", or "What is" queries. 
-            IT GENERATES A SINGLE-STEP PLAN that can be resolved with a SINGLE SQL query to provide immediate data points without additional analytical layers.
+            Direct action translator for simple, factual data retrieval. 
+            Use this ONLY for basic "List", "Show me names", or simple "Count" queries that DO NOT require mathematical ratios, percentages, or multi-step analysis. 
+            IT GENERATES A SINGLE-STEP PLAN that can be resolved with a SINGLE basic SQL query.
             INPUT REQUIRED: The raw user query string.
             OUTPUT: Returns a structured JSON/text containing the generated single-step execution plan, required tables, and key metrics.
           component_module: src.tools.planner_tools.planner_tools
           function_name: generate_direct_action_plan
-
+          
       session_service: 
         type: "sql"
         default_behavior: "PERSISTENT"

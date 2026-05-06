@@ -30,10 +30,10 @@ def get_gemini_client():
     # never be stored in the global variable declaeered at the top of the file.
     global _gemini_client
     if _gemini_client is None:
-        api_key = os.environ.get("GOOGLE_API_KEY")
+        api_key = os.environ.get("GEMINI_API_KEY")
         if not api_key:
-            logger.error("❌ Critical Failure: GOOGLE_API_KEY environment variable is missing.")
-            raise ValueError("GOOGLE_API_KEY is required but not found.")
+            logger.error("❌ Critical Failure: GEMINI_API_KEY environment variable is missing.")
+            raise ValueError("GEMINI_API_KEY is required but not found.")
         
         # Initialize the Google GenAI client
         _gemini_client = genai.Client(api_key=api_key)

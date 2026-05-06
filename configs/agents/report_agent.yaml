@@ -132,7 +132,7 @@ apps:
           »»»
 
         **Phase 3: FINAL OUTPUT**
-        - Call `_notify_artifact_save` exactly once for `executive_analytics_report.html`.
+        - You MUST Call `_notify_artifact_save` exactly once for `executive_analytics_report.html`.
         - Inform the user that the analysis is complete and the interactive HTML report is ready for download.
         </operational_logic>
 

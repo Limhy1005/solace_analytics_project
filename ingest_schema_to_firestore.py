@@ -123,10 +123,26 @@ def extract_schema_from_database(engine):
         
         # Get sample rows
         try:
-            sample_query = f"SELECT TOP {SAMPLE_ROWS_LIMIT} * FROM [{schema}].[{table}]"
+            query_parts = []
+            for _, col_row in cols.iterrows():
+                c_name = col_row['COLUMN_NAME']
+                c_type = col_row['DATA_TYPE']
+                
+                # If the column is spatial (type -151), convert it to text
+                if c_type in ['geometry', 'geography']:
+                    query_parts.append(f"'<Geo_Data_Placeholder>' AS [{c_name}]")
+                else:
+                    query_parts.append(f"[{c_name}]")
+            
+            column_selection = ", ".join(query_parts)
+            
+            sample_query = f"SELECT TOP {SAMPLE_ROWS_LIMIT} {column_selection} FROM [{schema}].[{table}]"
+            
             sample_df = pd.read_sql(sample_query, engine)
             sample = sample_df.map(lambda x: make_json_safe(x)).to_dict(orient="records")
+            
         except Exception as e:
+            print(f"   ⚠️  Warning: Could not fetch sample for {table_key}: {e}")
             sample = f"Could not fetch sample: {e}"
         
         schema_data[table_key] = {
@@ -211,7 +227,7 @@ def call_gemini_with_backoff(client, prompt, model, system_instruction=None):
             return json.loads(json_text)
             
         except Exception as e:
-            delay = 2 ** attempt
+            delay = 4 ** attempt
             print(f"   ⚠️ Attempt {attempt + 1}/{MAX_RETRIES} failed: {e}")
             if attempt + 1 == MAX_RETRIES:
                 print(f"   ❌ All retries exhausted")
@@ -319,7 +335,7 @@ def classify_all_tables(client, schema_data):
         print(f"   ✅ Classified as: {classification.get('classification', 'UNKNOWN')}")
         
         # Brief pause to avoid rate limits
-        time.sleep(10)
+        time.sleep(15)
     
     return classified_tables
 

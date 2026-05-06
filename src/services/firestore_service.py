@@ -99,8 +99,8 @@ def get_table_summary():
             table_summary[name] = {
                 "classification": details.get('classification', 'N/A'),
                 "purpose": details.get('purpose_summary', 'No summary'),
-                "entity_grain": details.get('EntityGrain', 'N/A'),
-                "time_grain": details.get('TimeGrain', 'N/A'),
+                # "entity_grain": details.get('EntityGrain', 'N/A'),
+                # "time_grain": details.get('TimeGrain', 'N/A'),
                 "columns": formatted_columns if formatted_columns else ["No column data available"]
             }
 
@@ -121,7 +121,7 @@ def get_table_summary():
 
         logger.info(
             f"\n================  TABLE SUMMARY START  ================\n"
-            f"{formatted_manifest}\n"
+            # f"{formatted_manifest}\n"
             f"================  TABLE SUMMARY END  ================\n\n"
         )
         

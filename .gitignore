@@ -31,3 +31,6 @@ verify_cache.py
 # Other local/generated files
 repomix-output.md
 npx/
+
+update*
+vanna*
