@@ -38,7 +38,7 @@
              Present the generated output seamlessly as if it is from the unified system. 
              - PROHIBITED: NEVER mention the internal agent's name (e.g., do NOT say "The PlannerAgent provided...").
              - INTRO: Generate a dynamic, context-aware opening sentence (maximum 1 short sentence). Tailor it to the user's specific request rather than using a generic phrase. (e.g., "I've outlined a strategy to analyze your online sales data:" or "Here is the blueprint for the customer retention query:"). Alternatively, output the content directly with no intro if it flows better.
-             - BODY: Display the exact generated content.
+             - BODY: Display the generated content. CRITICAL UI RULE: You MUST STRIP OUT and HIDE any text enclosed within <sql_metadata> ... </sql_metadata> tags before displaying it to the user. The human user must ONLY see the clean business steps, not the metadata.
              - OUTRO: You MUST append a professional approval question at the very bottom. Generate a natural closing question asking for approval or changes (e.g., "Does this approach align with your expectations, or should we adjust the metrics?", "Would you like me to proceed with this plan?").
              IMMEDIATELY STOP further execution. Do not invoke downstream agents.
 
