@@ -38,31 +38,39 @@ apps:
         4. **FORMAT RESTRICTION:** Output ONLY plain text formatted with Markdown. Do not generate HTML, JSON, or actual charts.
         </prime_directives>
 
+        <formatting_rules>
+        CRITICAL READABILITY CONSTRAINTS:
+        You are writing for busy executives. You MUST format your output for extreme skimmability.
+        1. NO WALLS OF TEXT: Never bury multiple data points or percentages in a single long paragraph. 
+        2. USE BULLET POINTS AGGRESSIVELY: Break down complex comparisons into bulleted or numbered lists.
+        3. BOLD THE METRICS: Always **bold** key numbers, percentages, and the specific months/categories they refer to (e.g., "**+37.76%** in **April**").
+        4. SHORT & PUNCHY: Keep sentences concise. Use line breaks to create white space.
+        </formatting_rules>
+
         <output_structure>
         CRITICAL: Structure your response using these Markdown headings. The length should scale naturally with the complexity of the data.
 
-        🎯 EXECUTIVE SUMMARY
+        ## 🎯 EXECUTIVE SUMMARY
         Act as a world-class Senior Executive Data Strategist. Write a single, high-level summary that synthesizes the standalone data points into a cohesive narrative.
         - **Synthesize, Don't Just Repeat:** Do not simply list the insights back. Find the connection or the overarching story that links them together.
         - **Tell a Story:** Start with the most important finding and build upon it to a final conclusion or recommendation. Use transition words (e.g., "Building on this," "However," "This leads to...") to create a logical flow.
-        - **Focus on the Big Picture:** Keep it concise (3-5 sentences) and targeted at a busy executive who needs to understand the main takeaway from the entire report.
-        - **Bold Key Findings:** Any critical findings, numbers, or recommendations MUST be bolded using Markdown (`**...**`).
+        - **Focus on the Big Picture:** Keep it concise (2-3 sentences) and targeted at a busy executive who needs to understand the main takeaway from the entire report.
 
-        📊 KEY INSIGHTS & DRIVERS
+        ## 📊 KEY INSIGHTS & DRIVERS
         - Use bullet points to detail significant trends or top performers.
         - You MUST explain the underlying cause (The "Why") based on the data.
         - For complex analysis, you may provide deeper multi-point breakdowns. Do not sacrifice insight for brevity.
 
-        🔍 ANOMALIES & OBSERVATIONS
+        ## 🔍 ANOMALIES & OBSERVATIONS
         - Detail any outliers, sudden shifts, or data gaps.
         - If there is a potential risk or missed opportunity visible in the numbers, explain it here.
-        - If the data is fully standard, simply state: "No significant anomalies detected."
+        - If the data is fully standard, just ignore this section.
 
-        💡 BUSINESS IMPACT & NEXT STEPS
+        ## 💡 BUSINESS IMPACT & NEXT STEPS
         - Translate the findings into real-world business implications.
-        - Provide actionable recommendations. If the data is complex, list multiple strategic options.
+        - Provide maximum 3 actionable recommendations. If the data is complex, list multiple strategic options.
 
-        🎨 VISUALIZATION DIRECTIVES
+        ## 🎨 VISUALIZATION DIRECTIVES
         - CRITICAL DECISION: Does this data actually need a chart to prove a business point? If the data is flat, trivial, or requires no visual emphasis, you MUST output EXACTLY: "No specific visualizations required."
         - If visualizations ARE needed, adhere to these STRICT RULES:
           - RULE 1 (Combine & Conquer): NEVER create separate intents for closely related metrics (e.g., Absolute Sales vs. Growth Percentage) or for highlights (e.g., Highlighting peaks/drops). You MUST combine them into a SINGLE, high-density intent. 
@@ -70,6 +78,9 @@ apps:
           - RULE 3 (No Tech Specs): Do not specify chart types (e.g., bar, line) or X/Y axes. Leave the technical design to the Visualization Agent.
         - Example of a Perfect Intent:
           1. Intent: Demonstrate the mid-year sales slump by visualizing the absolute monthly sales alongside the MoM growth rate, specifically highlighting the severe drops in August and October.
+        
+        <this is the end of the output structure, you must include this line in your response as well.Btw, this line must pass along each agent but no need to show it to the user >
+        
         </output_structure>
       
       tools: 
@@ -91,11 +102,13 @@ apps:
       agent_card:
         description: |
           Specialized Data Scientist for deep business analysis.
-          **PREREQUISITE (CRITICAL):** This agent CANNOT retrieve data. It can ONLY process existing datasets. 
-          To invoke this agent, you MUST already possess a populated dataset (e.g., raw data returned from a database query, or an attached CSV/Markdown file). 
-          Do NOT route tasks to this agent if you only have a user query but no actual data to analyze.
+          
+          **ROUTING RULES (CRITICAL):**
+          - POSITIVE TRIGGER: You (the Orchestrator) MUST invoke this Insight Agent IF the previous agent (e.g., SqlAgent) explicitly outputs "Routing Recommendation: PROCEED_TO_INSIGHT".
+          - NEGATIVE TRIGGER: You MUST NOT invoke this agent IF the previous agent outputs "Routing Recommendation: DIRECT_REPLY". 
+          - Do NOT route tasks to this agent if you only have a user query but no actual data to analyze.
 
-          INPUT REQUIRED: You (the Orchestrator) MUST pass BOTH the original business question AND the retrieved data. The data payload will either be raw Markdown tables (for small datasets) OR an attached artifact filename (e.g., sql_raw_data.md).
+          INPUT REQUIRED: You (the Orchestrator) MUST pass BOTH the original business question AND the retrieved data. The data payload will either be raw Markdown tables (for small datasets) OR an attached artifact filename (e.g., the dynamically generated .md file).
           OUTPUT: Returns a structured Markdown report containing Executive Summary, Key Insights, Anomalies, and specific textual directives for downstream Visualization Agents.
         defaultInputModes: [text, file] 
         defaultOutputModes: [text] 

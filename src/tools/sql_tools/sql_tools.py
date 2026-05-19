@@ -79,7 +79,7 @@ def execute_analytical_plan(full_action_plan: str):
             else:
                 logger.error(f"Results for Step {source_step} not found in memory!")
 
-        logger.debug(f"\n\n\nTargeted Tables: {specific_tables}\n") ################################
+        logger.debug(f"\n\n\nTargeted Tables: {specific_tables}\n")
         logger.debug(f"Cleaned Task Description: {clean_step_text}\n\n\n")
 
         # ---------------------------------------------------------
@@ -127,6 +127,9 @@ def execute_analytical_plan(full_action_plan: str):
             CRITICAL RULE 3 (GROUP BY SYNTAX): 
             - You MUST ONLY use actual database column names in your GROUP BY clause. NEVER use string literals or constants (e.g., `GROUP BY 'Online'` is STRICTLY FORBIDDEN).
             Return ONLY the SQL code without markdown wrappers if possible.
+            CRITICAL RULE 4 (UNION & ORDER BY SYNTAX): 
+            - In T-SQL, if you use UNION or UNION ALL and need to apply ORDER BY to the individual queries (such as when using TOP N), you MUST wrap each individual SELECT statement inside a subquery. 
+            - Example of REQUIRED syntax: `SELECT * FROM (SELECT TOP 5 ... ORDER BY ...) AS T1 UNION ALL SELECT * FROM (SELECT TOP 5 ... ORDER BY ...) AS T2`. DO NOT put ORDER BY directly before a UNION keyword.
             """
             
             # 5. Submit to LLM for SQL generation

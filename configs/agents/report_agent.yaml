@@ -102,30 +102,33 @@ apps:
                   const chartsSection=document.getElementById('dynamic-charts-section');
                   
                   chartsData.forEach((chart,index)=>{
-                      const card=document.createElement('div');card.className='chart-container';
-                      const title=document.createElement('div');title.className='step-title';title.innerText=chart.title||`Visualization ${index+1}`;card.appendChild(title);
-                      if(chart.insight){const insight=document.createElement('div');insight.className='insight';insight.innerHTML=`<strong>💡 Key Insight:</strong> ${chart.insight}`;card.appendChild(insight);}
-                      const chartDiv=document.createElement('div');chartDiv.id=`plotly-chart-${index}`;chartDiv.className='chart-wrapper';card.appendChild(chartDiv);chartsSection.appendChild(card);
-                      
-                      if(chart.config&&chart.config.data){
-                          const layoutUpdate = {
-                              autosize: true,
-                              margin: { t: 80, b: 50, l: 50, r: 20 },
-                              legend: { orientation: "h", y: -0.2 },
-                              template: "plotly_white"
-                          };
-                          
-                          if(chart.config.layout.annotations) {
-                              chart.config.layout.annotations.forEach((ann, i) => {
-                                  if(ann.y < 0) { 
-                                      ann.ay = (i % 2 === 0) ? 40 : 70;
-                                  }
-                              });
-                          }
+                  const card=document.createElement('div');card.className='chart-container';
+                  const title=document.createElement('div');title.className='step-title';title.innerText=chart.title||`Visualization ${index+1}`;card.appendChild(title);
+                  if(chart.insight){const insight=document.createElement('div');insight.className='insight';insight.innerHTML=`<strong>💡 Key Insight:</strong> ${chart.insight}`;card.appendChild(insight);}
+                  const chartDiv=document.createElement('div');chartDiv.id=`plotly-chart-${index}`;chartDiv.className='chart-wrapper';card.appendChild(chartDiv);chartsSection.appendChild(card);
+                  
+                  const actualData = chart.config ? chart.config.data : chart.data;
+                  const actualLayout = chart.config ? chart.config.layout : chart.layout;
 
-                          Plotly.newPlot(chartDiv.id, chart.config.data, {...chart.config.layout, ...layoutUpdate}, {responsive:true});
+                  if(actualData){
+                      const layoutUpdate = {
+                          autosize: true,
+                          margin: { t: 100, b: 120, l: 120, r: 50 },
+                          legend: { orientation: "h", y: -0.3 },
+                          template: "plotly_white"
+                      };
+                      
+                      if(actualLayout && actualLayout.annotations) {
+                          actualLayout.annotations.forEach((ann, i) => {
+                              if(ann.y < 0) { 
+                                  ann.ay = (i % 2 === 0) ? 40 : 70;
+                              }
+                          });
                       }
-                  });
+
+                      Plotly.newPlot(chartDiv.id, actualData, {...actualLayout, ...layoutUpdate}, {responsive:true});
+                  }
+              });
               </script>
           </body>
           </html>
@@ -134,6 +137,10 @@ apps:
         **Phase 3: FINAL OUTPUT**
         - You MUST Call `_notify_artifact_save` exactly once for `executive_analytics_report.html`.
         - Inform the user that the analysis is complete and the interactive HTML report is ready for download.
+
+        **Phase 3: FINAL OUTPUT (CRITICAL EXECUTION RULE)**
+        - You MUST output the complete and exact `«««save_artifact...»»»` text block defined in step 2. 
+        - After outputting the entire artifact block, simply output the text "The interactive HTML report has been generated successfully." and STOP GENERATING. Do not output anything else. 
         </operational_logic>
 
       session_service: 

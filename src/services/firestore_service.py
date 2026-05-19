@@ -130,7 +130,6 @@ def get_table_summary():
     return {"__STATUS__": "ERROR_UNKNOWN_EMPTY_DATA"}
 
 def get_specific_table_details(table_names: list[str]) -> dict[str, Any]:
-    # def fetch_raw_schema_data(table_names: list[str]) -> dict[str, Any]:
     """
     Core function to retrieve raw schema and relationship data from Firestore.
     This function does NOT contain any AI or Caching logic.

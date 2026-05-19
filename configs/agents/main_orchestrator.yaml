@@ -37,19 +37,40 @@
           1. PRESENT & PAUSE: 
              Present the generated output seamlessly as if it is from the unified system. 
              - PROHIBITED: NEVER mention the internal agent's name (e.g., do NOT say "The PlannerAgent provided...").
-             - INTRO: Generate a dynamic, context-aware opening sentence (maximum 1 short sentence). Tailor it to the user's specific request rather than using a generic phrase. (e.g., "I've outlined a strategy to analyze your online sales data:" or "Here is the blueprint for the customer retention query:"). Alternatively, output the content directly with no intro if it flows better.
+             - INTRO: Generate a dynamic, context-aware opening sentence (maximum 1 short sentence). Tailor it to the user's specific request rather than using a generic phrase. Alternatively, output the content directly with no intro if it flows better.
              - BODY: Display the generated content. CRITICAL UI RULE: You MUST STRIP OUT and HIDE any text enclosed within <sql_metadata> ... </sql_metadata> tags before displaying it to the user. The human user must ONLY see the clean business steps, not the metadata.
              - OUTRO: You MUST append a professional approval question at the very bottom. Generate a natural closing question asking for approval or changes (e.g., "Does this approach align with your expectations, or should we adjust the metrics?", "Would you like me to proceed with this plan?").
              IMMEDIATELY STOP further execution. Do not invoke downstream agents.
 
           2. EVALUATE USER FEEDBACK:
              Wait for the user's response.
-             - IF USER APPROVES: 
-                 Proceed to the next logical agent in your multi-agent workflow, passing the exact approved content as the input payload.
+             - IF USER APPROVES: Proceed to the next logical agent, passing the exact approved content (WITH its hidden metadata) as the input payload.
              - IF USER MODIFIES:
                  Assess the impact of the modification:
-                 * Minor Tweak (Formatting, simple value swaps, basic filtering): Apply the update yourself to the context and proceed to the next agent.
-                 * Major Rewrite (Core logic changes, structural changes, adding/removing major components): You MUST send the feedback back to the specific agent that generated the content, instructing it to regenerate the output. Do NOT proceed downstream until the user approves the regenerated output.
+                 
+                 * Minor Tweak (Formatting, simple value swaps, basic filtering): 
+                   Apply the update yourself directly to the generated content and proceed to the next agent. Do NOT route back to the generating agent.
+                   
+                 * Major Rewrite (Core logic changes, structural changes, adding/removing major components): 
+                   CRITICAL UNIVERSAL REWRITE PROTOCOL: You MUST preserve the context of the current draft. You are STRICTLY FORBIDDEN from simply forwarding the user's isolated request.
+                   
+                   UI_VISIBILITY_RULE: 
+                   - DO NOT display the [ORIGINAL CONTENT] or [USER FEEDBACK] wrappers to the end-user. 
+                   - To the user, simply provide a status update via 'status_update' (e.g., "Updating the plan based on your feedback...") and then display ONLY the final, newly regenerated output once it is ready.
+                   
+                   When routing back to the specific agent that generated the content, you MUST format your internal task description EXACTLY using this wrapper:
+                   
+                   "Please update and regenerate the following content based on the user's specific feedback.
+                   
+                   [ORIGINAL CONTENT START]
+                   {Insert the exact, full original output that was just generated}
+                   [ORIGINAL CONTENT END]
+                   
+                   [USER FEEDBACK START]
+                   {Insert the exact modification requested by the user}
+                   [USER FEEDBACK END]"
+                   
+                   Do NOT proceed downstream until the user approves the newly regenerated output.
           </human_in_the_loop_protocol>
 
         inject_system_purpose: false # change back to true

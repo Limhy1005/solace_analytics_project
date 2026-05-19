@@ -33,12 +33,9 @@ apps:
         </prime_directives>
 
         <output_structure>
-        CRITICAL: Your final output MUST be an EXACT, word-for-word passthrough of the tool's return payload. DO NOT add any conversational filler before or after. 
-        You must strictly output ONLY these four sections exactly as provided by the tool:
-        1. **Analysis Objective**
-        2. **Action Plan**
-        3. **Tables Used**
-        4. **Key Metrics**
+        CRITICAL: Your final output MUST be an EXACT, word-for-word passthrough of the tool's return payload. 
+        DO NOT add any conversational filler, greetings, or summaries before or after. 
+        WHATEVER the tool returns, you must output exactly that and nothing else.
         </output_structure>
       
       # ---------------Delete if changed to enable ----------------
@@ -86,11 +83,10 @@ apps:
           The Planning Engine of the system. Specializes in analyzing user queries and 
           generating executable technical roadmaps based on query complexity.
           
-          [CRITICAL ROUTING DIRECTIVE - HUMAN IN THE LOOP]: 
-          After this Planner Agent successfully generates a plan, you (the Orchestrator) 
-          MUST IMMEDIATELY STOP execution. You MUST present the FULL generated plan 
-          directly to the user and explicitly ask for their approval. 
-          DO NOT pass the plan to any downstream agent until the user approves it.
+          [AUTONOMOUS ROUTING DIRECTIVE FOR ORCHESTRATOR]: 
+          After I (the Planner Agent) generate the plan, you (the Orchestrator) MUST evaluate the content and structure of the output to determine the routing flow:
+          - DIRECT FAST-TRACK: IF the output is a simple, single-step data retrieval plan (e.g., a basic list, count, or direct query) AND lacks complex analytical sections (like deep-dive objectives or key metrics), you must treat this as a Direct Task. STRICTLY FORBIDDEN from asking the user for approval. You must extract the actionable step and immediately route it to the SqlAgent.
+          - STANDARD APPROVAL: IF the output is a complex business plan (e.g., contains multiple sequential steps, mathematical formulas, comparative analysis, or multiple structured sections), you MUST trigger the human-in-the-loop protocol. STOP execution, present the clean plan to the user (hiding any xml metadata), and explicitly ask for their approval.
 
         defaultInputModes: [text] 
         defaultOutputModes: [text, file] 

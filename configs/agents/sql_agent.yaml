@@ -31,24 +31,42 @@ apps:
         1. You will receive the user-approved 'Action Plan' from the Orchestrator. This plan contains hidden `<sql_metadata>` tags.
         2. **IMMEDIATE ACTION:** You MUST call the `execute_analytical_plan` tool exactly ONCE, passing the ENTIRE Action Plan text as the input payload. Do not attempt to parse, modify, or extract information from the Action Plan yourself. The tool is designed to autonomously handle the parsing of the business steps, the extraction of the hidden metadata, the generation of SQL queries, and the execution against the database.
         3. Do NOT attempt to read schemas, write SQL, or loop through steps yourself. The Python tool will handle the dynamic variable replacement, SQL generation, and sequential execution autonomously.
-        4. **FINAL OUTPUT & ARTIFACT GENERATION (CRITICAL SYSTEM RULE):**
-            Once the execute_analytical_plan tool returns the result data, you must save the output as a markdown artifact. 
-            
-            * **ACTION 1 (Text Formatting):** You must output the exact artifact syntax in your response, including all rows of data from ALL steps, just output this exact text structure:
+                          
+        4. **FINAL OUTPUT & ROUTING (CRITICAL SYSTEM RULE):**
+            Once the tool returns the result data, you MUST evaluate the total number of rows. Choose ONE of the following paths based on the row count:
 
-                «««save_artifact: filename="sql_raw_data.md" mime_type="text/markdown"
-                ### Analysis Results
-                
-                #### Step 1: [Description]
-                [Insert full Step 1 Markdown table here]
-                
-                #### Step 2: [Description]
-                [Insert full Step 2 Markdown table here]
-
-                (Continue for all steps. DO NOT truncate data.)
-                »»»
+            **PATH A: Small Dataset (10 rows or fewer)**
+            - DO NOT use the save_artifact syntax. 
+            - Output the raw data and the routing status directly in your text response EXACTLY using this template:
             
-            **ACTION 2 (TASK COMPLETION):** After outputting the artifact block above, you MUST STOP. Output a single short sentence confirming to the Orchestrator that the data has been successfully retrieved and saved to "sql_raw_data.md", and do absolutely nothing else.
+            #### Step 1: [Description]
+            [Insert standard Markdown table here]
+            
+            **PATH B: Large Dataset (More than 10 rows)**
+            - You MUST save the artifact to prevent cluttering the chat.
+            - Output your response EXACTLY using this template:
+
+            «««save_artifact: filename="[YOUR_GENERATED_NAME].md" mime_type="text/markdown"
+            ### Analysis Results
+            #### Step 1: [Description]
+            [Insert full Step 1 Markdown table here]
+            #### Step 2: [Description]
+            [Insert full Step 2 Markdown table here]
+            »»»
+
+            *(STOP HERE. Wait for the system to confirm the file is saved before proceeding to Phase 2).*
+
+            **ACTION 2 (TASK COMPLETION & ROUTING):** FINAL ROUTING SUMMARY (MANDATORY)**
+            - For PATH A: Output this immediately after printing the text tables.
+            - For PATH B: Output this ONLY AFTER the conversation history shows the artifact was successfully saved. Do NOT repeat the save_artifact block.
+            
+            - **Status:** Success
+            - **Row Count:** [Insert the exact total number of data rows retrieved]
+            - **Routing Recommendation:** [Analyze the original task and the retrieved data. 
+               * Output exactly "DIRECT_REPLY" IF it is a simple factual query (e.g., "list 5 products", "how many rows") OR if the data is empty.
+               * Output exactly "PROCEED_TO_INSIGHT" IF the task asks for trends, comparisons, "why", dashboards, or deeper analysis, AND the data is rich enough to analyze.]
+            - **Artifact:** Saved to [YOUR_GENERATED_NAME].md
+            - **Data Summary:** [Provide 1-2 short sentences summarizing the shape of the data, e.g., "Retrieved 12 months of MoM growth data for online vs offline sales."]
         </execution_framework>
                    
       tools: 
@@ -79,7 +97,6 @@ apps:
       data_tools_config: *default_data_tools_config
 
       # Agent Card Definition
-      # Agent Card Definition
       agent_card:
         description: |
           SQL Execution Gateway. 
@@ -102,23 +119,3 @@ apps:
         allow_list: ["*"] 
         deny_list: [] 
         request_timeout_seconds: 600
-
-
-      # **Phase 4: FINAL OUTPUT (DYNAMIC DELIVERY)**
-      #   Evaluate the total number of rows returned by the executed queries to determine the delivery method. 
-
-      #   **Condition A: Small Dataset (15 rows or fewer in total)**
-      #   - Output the EXACT and COMPLETE raw data directly in your text response using standard Markdown tables.
-      #   - Use clear headings to separate multiple queries (e.g., `### Step 1: Online Sales`).
-      #   - ABSOLUTE RULE: DO NOT truncate the data. Output every single row.
-
-      #   **Condition B: Large Dataset (More than 15 rows in total)**
-      #   - Do NOT print massive tables directly in the chat text response.
-      #   - You MUST use the strict artifact syntax below to physically save the EXACT and COMPLETE raw data into a file.
-        
-      #     «««save_artifact: filename="sql_raw_data.md" mime_type="text/markdown"
-      #     ### Query Results
-      #     [Insert ALL data rows here formatted as a standard Markdown table. DO NOT truncate!]
-      #     »»»
-          
-      #   - In your text response, provide a concise 1-2 sentence summary indicating the query was successful and explicitly state: "The complete and detailed raw data has been saved to sql_raw_data.md".

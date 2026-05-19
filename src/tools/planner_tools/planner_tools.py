@@ -54,7 +54,7 @@ The final plan MUST ONLY have FOUR main sections in the exact order below:
    - **AGENT METADATA (HIDDEN):** Immediately after the human-readable step, you MUST append a hidden XML block `<sql_metadata>` containing ONLY the exact database tables required for this specific step.
 
    *Example Format:*
-   1. Calculate the profit margin for year 2007.
+   1. Calculate the profit margin for year 2007.[Full Action Description including what to calculate and identify]
       * Formula: Profit Margin = (Total Sales - Total Cost) / Total Sales
    <sql_metadata>
    - Tables Used: dbo.FactSales, dbo.FactOnlineSales, dbo.DimDate
@@ -227,7 +227,7 @@ def generate_direct_action_plan(user_question: str):
 {temporal_context}
 
 **TASK:** You are an Intelligent Executive Consultant. The user has asked a simple, direct question (e.g., "List 10 products"). 
-Your job is to format this simple request into a clean, professional execution plan.
+Your job is to format this simple request into a clean, actionable database execution step.
 
 **STRATEGIC SUMMARY:**
 {manifest_data.get('strategic_summary')}
@@ -238,21 +238,21 @@ Your job is to format this simple request into a clean, professional execution p
 **OUTPUT STRUCTURE:**
 The final plan MUST ONLY have FOUR main sections in the exact order below. Do not add any conversational filler.
 
-1. **Analysis Objective**
-   - Provide a brief, one-sentence summary stating that this direct data retrieval is being executed immediately.
+**OUTPUT STRUCTURE (STRICT):**
+You MUST output ONLY the Action Plan section formatted exactly as shown below. Do not add any conversational filler or other sections.
 
-2. **Action Plan**
-   - **ABSOLUTE RULE:** You MUST provide EXACTLY ONE (1) single bullet point or numbered step. You are STRICTLY FORBIDDEN from generating multiple steps.
-   - **CRITICAL:** The step MUST begin with a strong, specific analytical verb (e.g., "Retrieve", "Count", "Identify").
-   - Do NOT break down the internal mechanics of how a database executes the query (e.g., do NOT separate "aggregating", "sorting", and "fetching names" into different steps). 
-   - The single step must encapsulate the entire data retrieval goal in one sentence. (e.g., "Retrieve the top 5 products based on total sales amount for January 2007.").
-   - **NO SQL TERMS:** Strictly PROHIBITED from mentioning "JOIN", "CTE", "WHERE clause", "ORDER BY", etc. Focus purely on what data needs to be pulled.
+### Action Plan
+*Example Format:*
+   1. Calculate the profit margin for year 2007.
+      * Formula: Profit Margin = (Total Sales - Total Cost) / Total Sales
+   <sql_metadata>
+   - Tables Used: dbo.FactSales, dbo.FactOnlineSales, dbo.DimDate.(Must use schema.table dont use schema_table or just table.)
+   </sql_metadata>
+<this is the end of the output structure, you must include this line in your response as well.Btw, this line must pass along each agent but no need to show it to the user >
 
-3. **Tables Used**
-   - Provide a bulleted list of the database tables utilized, including schema prefixes (e.g., `dbo.TableName`, `sales.TableName`).
-
-4. **Key Metrics**
-   - Briefly list the exact attributes or core metrics being retrieved (e.g., Product Key, Product Name).
+**CRITICAL RULES:**
+- You MUST provide EXACTLY ONE (1) numbered step.
+- NO SQL TERMS: Strictly PROHIBITED from mentioning "JOIN", "CTE", "WHERE clause", etc. in the human-readable text.
 """
 
     logger.info(f"\nSystem prompt for direct plan generation:\n{system_prompt}\n\n")
