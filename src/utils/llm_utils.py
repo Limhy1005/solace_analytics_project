@@ -1,6 +1,6 @@
 import os
 import config
-import logging
+
 from google import genai
 from google.genai import types
 
@@ -24,10 +24,7 @@ def get_gemini_client():
     Ensures the client is initialized only once during the application lifecycle.
     """
 
-    # Without the 'global' keyword above, the assignment below ('=') 
-    # would cause the compiler to treat '_gemini_client' as a new 
-    # local variable scoped only to this method. The result would 
-    # never be stored in the global variable declaeered at the top of the file.
+    # Without the 'global' keyword above, the assignment below ('=') would cause the compiler to treat '_gemini_client' as a new local variable scoped only to this method. The result would never be stored in the global variable declaeered at the top of the file.
     global _gemini_client
     if _gemini_client is None:
         api_key = os.environ.get("GEMINI_API_KEY")

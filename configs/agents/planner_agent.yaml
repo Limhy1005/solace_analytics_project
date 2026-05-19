@@ -38,11 +38,9 @@ apps:
         WHATEVER the tool returns, you must output exactly that and nothing else.
         </output_structure>
       
-      # ---------------Delete if changed to enable ----------------
-      inject_system_purpose: false # change back to true
-      inject_response_format: false # change back to true
-      inject_user_profile: false # change back to true 
-      # ---------------Delete if changed to enable ----------------
+      inject_system_purpose: false
+      inject_response_format: false
+      inject_user_profile: false
       
       tools: 
         - tool_type: python 
@@ -73,8 +71,8 @@ apps:
         database_url: "${PLANNER_AGENT_DATABASE_URL, sqlite:///planner_agent.db}"
       artifact_service: *default_artifact_service
       artifact_handling_mode: "reference"
-      enable_embed_resolution: true # change back to true
-      enable_artifact_content_instruction: true # change back to true 
+      enable_embed_resolution: true
+      enable_artifact_content_instruction: true
       data_tools_config: *default_data_tools_config
 
       # Agent Card Definition

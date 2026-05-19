@@ -1,6 +1,3 @@
-import os
-import sys
-import logging
 from google.cloud import firestore
 import config
 import json

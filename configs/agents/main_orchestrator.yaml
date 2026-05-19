@@ -5,7 +5,6 @@
     log_file_level: INFO
     log_file: orchestrator-agent.log
 
-  # Shared SAM config
   !include ../shared_config.yaml
 
   apps:
@@ -73,9 +72,9 @@
                    Do NOT proceed downstream until the user approves the newly regenerated output.
           </human_in_the_loop_protocol>
 
-        inject_system_purpose: false # change back to true
-        inject_response_format: false # change back to true 
-        inject_user_profile: false # change back to true
+        inject_system_purpose: false
+        inject_response_format: false
+        inject_user_profile: false
         session_service: 
           type: "sql"
           database_url: "${ORCHESTRATOR_DATABASE_URL, sqlite:///orchestrator.db}"
@@ -112,18 +111,3 @@
           allow_list: ["*"]
 
           request_timeout_seconds: 600
-
-
-          # [STRICT DATA PASSING RULES]
-          # 1. Check the 'Tool Results' carefully. 
-          # 2. IF the previous agent returned data as TEXT/TABLE (not a file): 
-          #    - You MUST copy and paste that EXACT text/table into the 'task_description' for the next agent.
-          #    - DO NOT put anything in the 'artifacts' list.
-          # 3. IF the previous agent explicitly saved a FILE (Artifact):
-          #    - You can then put the filename in the 'artifacts' list.
-          # 4. NEVER invent or guess filenames like if they were not explicitly created.
-
-
-# Artifact Management Guidelines:
-#           - You must review your artifacts and return the ones that are important for the user by using artifact_return embed. You can use list_artifacts to see all available artifacts.
-#           - Provide regular progress updates using `status_update` embed directives, especially before initiating any tool call.

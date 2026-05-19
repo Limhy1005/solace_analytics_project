@@ -1,7 +1,6 @@
 import json
-import os
 from datetime import datetime
-from src.utils.llm_utils import call_planning_llm, call_general_llm
+from src.utils.llm_utils import call_planning_llm
 from src.services.firestore_service import get_table_summary
 
 from logger_config import logger
