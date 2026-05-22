@@ -1,7 +1,7 @@
 import re
 
 from logger_config import logger
-from vanna_test_ask import vn 
+from test_ask_vanna import vn 
 
 def execute_analytical_plan(full_action_plan: str):
     """
