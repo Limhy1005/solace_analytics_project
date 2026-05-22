@@ -27,10 +27,10 @@ def get_gemini_client():
     # Without the 'global' keyword above, the assignment below ('=') would cause the compiler to treat '_gemini_client' as a new local variable scoped only to this method. The result would never be stored in the global variable declaeered at the top of the file.
     global _gemini_client
     if _gemini_client is None:
-        api_key = os.environ.get("GEMINI_API_KEY")
+        api_key = os.environ.get("LLM_SERVICE_API_KEY")
         if not api_key:
-            logger.error("❌ Critical Failure: GEMINI_API_KEY environment variable is missing.")
-            raise ValueError("GEMINI_API_KEY is required but not found.")
+            logger.error("❌ Critical Failure: LLM_SERVICE_API_KEY environment variable is missing.")
+            raise ValueError("LLM_SERVICE_API_KEY is required but not found.")
         
         # Initialize the Google GenAI client
         _gemini_client = genai.Client(api_key=api_key)

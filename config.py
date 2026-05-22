@@ -16,8 +16,8 @@ GEMINI_API_KEY = os.environ.get("GOOGLE_API_KEY")
 # --- Database Connection ---
 # Default values work for local development with ContosoRetailDW
 # Override these in .env file for different environments
-DB_SERVER = os.environ.get("DB_SERVER", "localhost\\SQLEXPRESS01")
-DB_DATABASE = os.environ.get("DB_DATABASE", "ContosoRetailDW")
+DB_SERVER = os.environ.get("DB_SERVER", "DB_SERVER_HERE")
+DB_DATABASE = os.environ.get("DB_DATABASE", "DB_DATABASE_HERE")
 
 # You can override the entire connection string if needed
 CONNECTION_STRING = os.environ.get(
@@ -37,8 +37,8 @@ GENERAL_MODEL_NAME = "openai/" + os.environ.get("LLM_SERVICE_GENERAL_MODEL_NAME"
 
 # --- Validation ---
 # Helpful warnings for missing configuration
-if not os.environ.get("GOOGLE_API_KEY") and not os.environ.get("GROQ_API_KEY"):
-    print("⚠️  Warning: No API keys found. Set GOOGLE_API_KEY or GROQ_API_KEY in .env file")
+if not os.environ.get("LLM_SERVICE_API_KEY") and not os.environ.get("GROQ_API_KEY"):
+    print("⚠️  Warning: No API keys found. Set LLM_SERVICE_API_KEY in .env file")
 
 if not os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"):
     print("⚠️  Warning: GOOGLE_APPLICATION_CREDENTIALS not set. Firestore may not work.")

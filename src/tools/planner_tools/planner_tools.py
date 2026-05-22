@@ -108,12 +108,8 @@ Your objective is to extract the correct baseline data so the downstream system 
 - **SQL-ONLY RULE (ABSOLUTE FATAL ERROR IF VIOLATED):** Every single step you generate MUST translate directly into an actionable database query. Do NOT add a final analytical step that says "Compare the results" or "Present a comparative view". 
 """
 
+# Haven't Finish implementation for this one
 PREDICT_PROMPT = """
-**PREDICTION RULES**:
-Your objective is to extract the correct historical time-series data so the downstream system can use it to forecast future trends. 
-
-- **DATA RETRIEVAL ONLY:** Formulate steps to extract historical baselines (e.g., sales over the last 12 months). 
-- **SQL-ONLY RULE (ABSOLUTE FATAL ERROR IF VIOLATED):** You MUST stop after retrieving the historical data. Do NOT generate a final step that says "Forecast future trends" or "Predict the next month". The downstream Insight Agent will perform the actual prediction using the data you retrieve.
 """
 # ==========================================
 # Dynamic Router
