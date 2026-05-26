@@ -336,7 +336,7 @@ def classify_all_tables(client, schema_data):
         print(f"   ✅ Classified as: {classification.get('classification', 'UNKNOWN')}")
         
         # Brief pause to avoid rate limits
-        time.sleep(15)
+        time.sleep(5)
     
     return classified_tables
 
