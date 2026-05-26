@@ -15,7 +15,7 @@ apps:
       <<: *broker_connection
 
     app_config:
-      namespace: "contoso_analytics"
+      namespace: "${NAMESPACE}"
       supports_streaming: true
       agent_name: "PlannerAgent"
       display_name: "Planner Agent "

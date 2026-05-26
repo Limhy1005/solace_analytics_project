@@ -52,7 +52,7 @@ load_dotenv()
 # Configuration
 # =============================================
 # Database
-DB_SERVER = 'localhost\\SQLEXPRESS01'
+DB_SERVER = '.\\SQLEXPRESS'
 DB_DATABASE = 'ContosoRetailDW'
 SQL_SERVER_URI = (
     f"mssql+pyodbc://{DB_SERVER}/{DB_DATABASE}?"
@@ -197,11 +197,12 @@ def initialize_firestore_client():
 def initialize_gemini_client():
     """Initialize Gemini client."""
     try:
-        client = genai.Client()
+        api_key = os.environ.get('LLM_SERVICE_API_KEY')
+        client = genai.Client(api_key=api_key)
         print("✅ Gemini client initialized.")
         return client
     except Exception as e:
-        print(f"❌ Gemini initialization failed. Is GEMINI_API_KEY set? Error: {e}")
+        print(f"❌ Gemini initialization failed. Is LLM_SERVICE_API_KEY set? Error: {e}")
         sys.exit(1)
 
 def call_gemini_with_backoff(client, prompt, model, system_instruction=None):
@@ -492,9 +493,9 @@ def run_complete_ingestion():
 # =============================================
 if __name__ == "__main__":
     # Validate environment
-    if 'GEMINI_API_KEY' not in os.environ:
-        print("❌ GEMINI_API_KEY environment variable not set.")
-        print("   Set it with: $env:GEMINI_API_KEY='your-key-here'")
+    if 'LLM_SERVICE_API_KEY' not in os.environ:
+        print("❌ LLM_SERVICE_API_KEY environment variable not set.")
+        print("   Set it with: $env:LLM_SERVICE_API_KEY='your-key-here'")
         sys.exit(1)
     
     # Run the pipeline
