@@ -57,24 +57,24 @@ cp .env.example .env
 ```
 
 2. Open the newly created .env file and update the following mandatory fields with your actual credentials:
-- LLM API Keys: Set LLM_SERVICE_API_KEY to your live API token for your chosen LLM provider.
-- Solace Credentials: Update SOLACE_BROKER_URL, SOLACE_BROKER_VPN, SOLACE_BROKER_USERNAME, and SOLACE_BROKER_PASSWORD to connect to your Solace Event Mesh.
-- Google Cloud: Set GOOGLE_APPLICATION_CREDENTIALS to the path of your local service account JSON file for Firestore access.
+- LLM_SERVICE_API_KEY: Your Gemini API token.
+- Solace Credentials: SOLACE_BROKER_URL, SOLACE_BROKER_VPN, SOLACE_BROKER_USERNAME, SOLACE_BROKER_PASSWORD.
+- Google Cloud: Download your GCP Service Account JSON key, rename to service-account-key.json, place in root, and set GOOGLE_APPLICATION_CREDENTIALS to its absolute path.
 
 Note: Other variables like FASTAPI_PORT or SESSION_SECRET_KEY have default values for local testing and can be left as they are.
 
 **Important:** Never commit your `.env` file or service account JSON to Git!
 
-### 5. Configure Database Connection
-Edit `config.py` and update your SQL Server connection details:
+### 5. Provision Local Database
+Use SQL Server Management Studio (SSMS) to create/restore the ContosoRetailDW database.
 
-```python
-DB_SERVER = 'YOUR_SERVER_NAME'
-DB_DATABASE = 'YOUR_DATABASE_NAME'
-CONNECTION_STRING = f'DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={DB_SERVER};DATABASE={DB_DATABASE};Trusted_Connection=yes;'
-```
+### 6. Configure Database Connection
+Update DB_SERVER and DB_DATABASE in config.py to match your local SQL Server instance.
 
-### 6. Ingest Database Schema (First Time Only)
+### 7. Prepare DDL Script
+Generate your database DDL script via SSMS, export as a .sql file, and place it in the designated local directory.
+
+### 8. Ingest Database Schema (First Time Only)
 This loads your database schema into Firestore for AI analysis:
 
 ```bash
@@ -83,14 +83,14 @@ python ingest_schema_to_firestore.py
 
 Expected output: "✅ Schema successfully uploaded to Firestore!"
 
-### 7. Train Vanna SQL Agent (First Time Only)
+### 9. Train Vanna SQL Agent (First Time Only)
 This step parses the database DDL and sample data, then trains a local ChromaDB vector store (`./vanna_chroma_db`) to enable highly accurate, RAG-powered SQL generation:
 
 ```bash
 python vanna_train_schema.py
 ```
 
-### 8. Run the Application
+### 10. Run the Application
 ```bash
 py sam.py
 ```
@@ -139,17 +139,19 @@ Because the system uses intent recognition (Deep-Dive, Calculate, Compare, Predi
 
 ```
 analytics-ai/
-├── configs/                         # SAM configurations (Agents, WebUI Gateway, Models)
+├── configs/                         # SAM configurations (Agents, WebUI, Logging)
+│   └── agents/                      # YAML prompts for Orchestrator, Planner, SQL, etc.
 ├── src/
 │   ├── services/                    # Firestore and database connection logic
 │   └── tools/                       # Core Python tools (Planner, Schema, SQL via Vanna AI)
-├── ingest_schema_to_firestore.py    # Extracts and uploads metadata to Firestore
-├── config.py                        # System and database configuration settings
-├── logger_config.py                 # Centralized logging configurations
+├── ingest_schema_to_firestore.py    # Metadata extraction script
+├── train_schema_vanna.py            # ChromaDB vector store initialization
+├── test_ask_vanna.py                # Standalone Vanna SQL test script
+├── config.py                        # System and database connection settings
+├── logger_config.py                 # Centralized debugging configurations
 ├── requirements.txt                 # Python dependencies
 ├── .env.example                     # Environment variables template
-├── sam.py                           # Application execution script
-└── README.md                        # This file
+└── sam.py                           # Main application launcher
 ```
 
 ---
